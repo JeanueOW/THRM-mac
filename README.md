@@ -224,7 +224,8 @@ thrm
 
 ### macOS
 
-macOS 版目前从源码构建（暂无官方预编译包）：
+macOS 移植分支的安装包见 **[本仓库 Releases](https://github.com/JeanueOW/THRM/releases)**（通用 DMG，Intel + Apple Silicon）。
+也可以从源码构建：
 
 ```bash
 ./build_macos.sh
@@ -233,6 +234,9 @@ macOS 版目前从源码构建（暂无官方预编译包）：
 产物为 `build/bin/THRM.app` 和 DMG。Intel 与 Apple Silicon 均支持，可用
 `UNIVERSAL=1 ./build_macos.sh` 生成通用二进制。构建环境、代码签名、蓝牙/麦克风
 权限和已知限制详见 [macOS 文档](docs/macos.md)。
+
+> 本仓库是 [TIANLI0/THRM](https://github.com/TIANLI0/THRM) 的 macOS 移植分支；
+> Windows/Linux 版本、官网与上游发布仍以上游仓库为准。
 
 ## 快速开始
 

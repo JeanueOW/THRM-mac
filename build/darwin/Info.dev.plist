@@ -10,11 +10,11 @@
         <key>CFBundleIdentifier</key>
             <string>top.tianli0.thrm</string>
         <key>CFBundleVersion</key>
-            <string>3.9.0</string>
+            <string>3.10.0</string>
         <key>CFBundleGetInfoString</key>
             <string>THRM 桌面控制中心</string>
         <key>CFBundleShortVersionString</key>
-            <string>3.9.0</string>
+            <string>3.10.0</string>
         <key>CFBundleIconFile</key>
             <string>icons</string>
         <key>LSMinimumSystemVersion</key>
