@@ -22,3 +22,18 @@ with `wails3 task <name>` — see [`Taskfile.yml`](../Taskfile.yml).
   `locales/*.json` (option texts and license per language) and `resources/license_*.txt`. `wails3 task package`
   runs `fluentsetup build fluentsetup.json -D Version=<config.yml version> -D PawnIOVersion=<pawnio.env> -o ../../bin`;
   FluentSetup downloads Microsoft's WebView2 bootstrapper itself (`"auto": "bundle"`).
+
+## macOS
+
+* `darwin/Info.plist`, `darwin/Info.dev.plist` - Bundle metadata. Besides the Wails defaults these
+  declare `NSBluetoothAlwaysUsageDescription`, `NSMicrophoneUsageDescription`, the minimum macOS
+  version (13.0) and the app category. They are maintained by hand; `wails3 task assets` writes to
+  `.wails` and does not overwrite them.
+* `darwin/icons.icns` - Application icon, generated from `appicon.png` with
+  `wails3 generate icons -input build/appicon.png -macfilename build/darwin/icons.icns`.
+* `darwin/entitlements.plist` - Hardened-runtime entitlements (`device.bluetooth`, `device.audio-input`)
+  used when building with a Developer ID identity.
+
+`build_macos.sh` assembles `build/bin/THRM.app` with both `THRM` and `thrm-core` in
+`Contents/MacOS`, then ad-hoc or Developer ID signs it and creates a DMG. See
+[`docs/macos.md`](../docs/macos.md).

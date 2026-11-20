@@ -236,6 +236,9 @@ func applyTelemetryMetadata(temp *types.TemperatureData, fallback telemetryReadi
 	if len(fallback.cpuSensors) > 0 {
 		temp.CpuSensors = fallback.cpuSensors
 	}
+	if len(fallback.cpuPowerSensors) > 0 {
+		temp.CpuPowerSensors = fallback.cpuPowerSensors
+	}
 	if fallback.gpuModel != "" {
 		temp.GpuModel = fallback.gpuModel
 	}

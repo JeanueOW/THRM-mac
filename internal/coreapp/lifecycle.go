@@ -386,7 +386,19 @@ func (a *CoreApp) applyTrayVisibility(cfg types.AppConfig) {
 	if a.trayManager == nil {
 		return
 	}
+	if platformForcesTrayVisible() {
+		a.trayManager.SetEnabled(true)
+		return
+	}
 	a.trayManager.SetEnabled(!cfg.DisableSystemTray)
+}
+
+// RunTrayMainLoop runs the menu bar event loop on the calling (main) goroutine.
+// It blocks on macOS and returns immediately on other platforms.
+func (a *CoreApp) RunTrayMainLoop() {
+	if a.trayManager != nil {
+		a.trayManager.RunMainThread()
+	}
 }
 
 // cleanup 清理资源

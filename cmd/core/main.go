@@ -83,12 +83,7 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
-	select {
-	case <-sigChan:
-		app.LogInfo("收到系统退出信号")
-	case <-app.QuitChan():
-		app.LogInfo("收到应用退出请求")
-	}
+	runEventLoop(app, sigChan)
 
 	app.Stop()
 }

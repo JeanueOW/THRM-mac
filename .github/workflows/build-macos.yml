@@ -1,0 +1,56 @@
+name: Build macOS
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '**.go'
+      - 'go.mod'
+      - 'go.sum'
+      - 'frontend/**'
+      - 'build/**'
+      - 'Taskfile.yml'
+      - 'build_macos.sh'
+      - '.github/workflows/build-macos.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-macos:
+    runs-on: macos-14
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Wails v3
+        run: go install github.com/wailsapp/wails/v3/cmd/wails3@v3.1.0
+
+      - name: Build macOS app
+        run: |
+          chmod +x build_macos.sh
+          ./build_macos.sh
+
+      - name: Zip app bundle
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent \
+            build/bin/THRM.app "build/bin/THRM-latest-macOS-$(go env GOARCH).zip"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: THRM-macOS
+          path: |
+            build/bin/THRM-latest-macOS-*.zip
+            build/bin/THRM-*-macOS-*.dmg
+          if-no-files-found: error
+          retention-days: 14

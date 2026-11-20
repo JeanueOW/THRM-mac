@@ -7,6 +7,7 @@ import (
 	"github.com/TIANLI0/THRM/internal/appmeta"
 	"github.com/TIANLI0/THRM/internal/guiapp"
 	"github.com/wailsapp/wails/v3/pkg/application"
+	"github.com/wailsapp/wails/v3/pkg/events"
 )
 
 //go:embed all:frontend/dist
@@ -53,6 +54,13 @@ func main() {
 			ProgramName:   "thrm",
 			ApplicationID: "top.tianli0.thrm",
 		},
+		Mac: application.MacOptions{
+			// Closing the window must not terminate the GUI: the core keeps
+			// controlling the cooler from the menu bar, and the window can be
+			// reopened from there.
+			ActivationPolicy: application.ActivationPolicyRegular,
+			ApplicationShouldTerminateAfterLastWindowClosed: false,
+		},
 	})
 
 	windowOptions := application.WebviewWindowOptions{
@@ -84,6 +92,12 @@ func main() {
 	}
 
 	gui.AttachWindow(app.Window.NewWithOptions(windowOptions))
+
+	// 点击 Dock 图标或对已运行的应用再次 open 时，macOS 只发 reopen 事件。
+	// 窗口在关闭时被隐藏，这里把它重新显示出来。
+	app.Event.OnApplicationEvent(events.Mac.ApplicationShouldHandleReopen, func(*application.ApplicationEvent) {
+		gui.ShowWindow()
+	})
 
 	if err := app.Run(); err != nil {
 		println("Error:", err.Error())

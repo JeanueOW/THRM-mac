@@ -39,8 +39,13 @@ func (a *App) AttachWindow(window *application.WebviewWindow) {
 		placed.Do(a.keepWindowOnScreen)
 	})
 
-	// 标题栏按钮、Alt+F4、任务栏关闭都会走到这里：记下窗口几何信息，不拦截关闭。
-	window.RegisterHook(events.Common.WindowClosing, func(*application.WindowEvent) {
+	// 标题栏按钮、Alt+F4、任务栏关闭都会走到这里：先记下窗口几何信息。
+	// macOS 上关闭按钮只把窗口藏起来（与菜单栏应用的习惯一致），真正退出走 quit()。
+	window.RegisterHook(events.Common.WindowClosing, func(event *application.WindowEvent) {
 		a.captureWindowState()
+		if platformKeepsWindowAliveOnClose() && !a.quitting.Load() {
+			event.Cancel()
+			window.Hide()
+		}
 	})
 }

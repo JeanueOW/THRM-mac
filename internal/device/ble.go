@@ -166,8 +166,15 @@ func (b *BLEManager) Connect() (bool, map[string]string) {
 	}
 
 	b.logInfo("初始化 BLE 适配器...")
+	if hint := bleAuthorizationHint(); hint != "" {
+		b.logError("%s", hint)
+		return false, nil
+	}
 	if err := b.adapter.Enable(); !isAdapterEnabled(err) {
 		b.logError("启用 BLE 适配器失败: %v", err)
+		if hint := bleEnableFailureHint(err); hint != "" {
+			b.logError("%s", hint)
+		}
 		return false, nil
 	}
 

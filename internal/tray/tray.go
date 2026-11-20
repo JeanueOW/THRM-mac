@@ -390,6 +390,15 @@ func (m *Manager) Init() {
 
 	m.logInfo("正在初始化系统托盘")
 
+	// On macOS AppKit requires the status item and NSApplication run loop to
+	// be driven by the process main thread. The supervisor design (restarting
+	// the loop in a goroutine) is specific to Windows/Linux; on macOS the entry
+	// point calls RunMainThread after the core has started.
+	if platformRunsTrayOnMainThread() {
+		m.logInfo("系统托盘将在主线程事件循环中启动")
+		return
+	}
+
 	// 启动监督协程：负责等待外壳就绪、运行 systray，并在消息循环异常退出后自动重建。
 	m.superviseOnce.Do(func() {
 		go m.supervise()
@@ -668,7 +677,12 @@ func (m *Manager) setupIcon() (err error) {
 	}
 
 	systray.SetIcon(m.iconData)
-	systray.SetTitle(appmeta.AppName)
+	// macOS 菜单栏只放图标：状态栏宽度有限，系统惯例也是图标 + 悬浮提示，
+	// 把应用名常驻显示会挤占其它菜单项。Linux 的 StatusNotifierItem 没有图标
+	// 之外的稳定标识，保留标题。
+	if runtime.GOOS != "darwin" {
+		systray.SetTitle(appmeta.AppName)
+	}
 	systray.SetTooltip(runningTooltip())
 	return nil
 }

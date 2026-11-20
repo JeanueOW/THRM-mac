@@ -807,13 +807,17 @@ function ControlPanel({ config, onConfigChange, isConnected, legionFnQSupported,
   const [temperatureHistoryEnabled, setTemperatureHistoryEnabled] = useState(() => useAppStore.getState().historyEnabled);
   // 平台取自 Wails 运行时而不是 userAgent：WebKitGTK 的 UA 里没有可靠的平台标识。
   const [isWindowsPlatform, setIsWindowsPlatform] = useState(false);
+  const [isMacPlatform, setIsMacPlatform] = useState(false);
   const [flydigiCompat, setFlydigiCompat] = useState<FlydigiCompatStatus | null>(null);
 
   useEffect(() => {
     let disposed = false;
     void System.Environment()
       .then((env) => {
-        if (!disposed) setIsWindowsPlatform(env.OS === 'windows');
+        if (!disposed) {
+          setIsWindowsPlatform(env.OS === 'windows');
+          setIsMacPlatform(env.OS === 'darwin');
+        }
       })
       .catch(() => {});
     return () => {
@@ -2769,7 +2773,11 @@ function ControlPanel({ config, onConfigChange, isConnected, legionFnQSupported,
           <SettingRow
             icon={<Monitor className={clsx('h-4 w-4', config.windowsAutoStart ? 'text-emerald-500' : '')} />}
             title={isWindowsPlatform ? t('controlPanel.system.autoStartTitle') : t('controlPanel.system.autoStartTitleLinux')}
-            description={isWindowsPlatform ? t('controlPanel.system.autoStartDescription') : t('controlPanel.system.autoStartDescriptionLinux')}
+            description={isWindowsPlatform
+              ? t('controlPanel.system.autoStartDescription')
+              : isMacPlatform
+                ? t('controlPanel.system.autoStartDescriptionMac')
+                : t('controlPanel.system.autoStartDescriptionLinux')}
             tip={isWindowsPlatform ? t('controlPanel.system.autoStartTip') : undefined}
           >
             <ToggleSwitch
@@ -2781,33 +2789,36 @@ function ControlPanel({ config, onConfigChange, isConnected, legionFnQSupported,
             />
           </SettingRow>
 
-          <SettingRow
-            icon={<PanelBottom className={clsx('h-4 w-4', !(config as any).disableSystemTray ? 'text-emerald-500' : '')} />}
-            title={t('controlPanel.system.trayTitle')}
-            description={t('controlPanel.system.trayDescription')}
-            tip={t('controlPanel.system.trayTip')}
-          >
-            <div className="flex items-center gap-2">
-              {/* 托盘关掉后，托盘菜单里的"退出"不可用，这里替它提供出口 */}
-              {(config as any).disableSystemTray && (
-                <Button
-                  variant="ghost"
+          {/* macOS 的核心进程是菜单栏代理，隐藏托盘后就没有入口了，因此固定显示。 */}
+          {!isMacPlatform && (
+            <SettingRow
+              icon={<PanelBottom className={clsx('h-4 w-4', !(config as any).disableSystemTray ? 'text-emerald-500' : '')} />}
+              title={t('controlPanel.system.trayTitle')}
+              description={t('controlPanel.system.trayDescription')}
+              tip={t('controlPanel.system.trayTip')}
+            >
+              <div className="flex items-center gap-2">
+                {/* 托盘关掉后，托盘菜单里的"退出"不可用，这里替它提供出口 */}
+                {(config as any).disableSystemTray && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setQuitAllConfirmOpen(true)}
+                    icon={<Power className="h-3.5 w-3.5" />}
+                  >
+                    {t('controlPanel.system.quitAllAction')}
+                  </Button>
+                )}
+                <ToggleSwitch
+                  enabled={!(config as any).disableSystemTray}
+                  onChange={handleSystemTrayChange}
+                  loading={loadingStates.systemTray}
                   size="sm"
-                  onClick={() => setQuitAllConfirmOpen(true)}
-                  icon={<Power className="h-3.5 w-3.5" />}
-                >
-                  {t('controlPanel.system.quitAllAction')}
-                </Button>
-              )}
-              <ToggleSwitch
-                enabled={!(config as any).disableSystemTray}
-                onChange={handleSystemTrayChange}
-                loading={loadingStates.systemTray}
-                size="sm"
-                color="green"
-              />
-            </div>
-          </SettingRow>
+                  color="green"
+                />
+              </div>
+            </SettingRow>
+          )}
 
           <SettingRow
             icon={<Clock3 className={clsx('h-4 w-4', (config as any).ignoreDeviceOnReconnect ? 'text-emerald-500' : '')} />}

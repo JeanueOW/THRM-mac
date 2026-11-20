@@ -31,6 +31,7 @@ type telemetryReading struct {
 	cpuModel          string
 	cpuPower          float64
 	cpuSensors        []types.TemperatureSensor
+	cpuPowerSensors   []types.PowerSensor
 	gpuModel          string
 	gpuSensors        []types.TemperatureSensor
 	gpuPowerSensors   []types.PowerSensor
@@ -39,7 +40,7 @@ type telemetryReading struct {
 }
 
 func (f telemetryReading) usable() bool {
-	return f.cpuTemp > 0 || f.gpuTemp > 0 || f.gpuPower > 0
+	return f.cpuTemp > 0 || f.gpuTemp > 0 || f.cpuPower > 0 || f.gpuPower > 0
 }
 
 type platformTelemetryReader func(*Reader, bool) telemetryReading
@@ -56,6 +57,9 @@ func (f *telemetryReading) mergeCPU(other telemetryReading) {
 	}
 	if len(other.cpuSensors) > 0 {
 		f.cpuSensors = other.cpuSensors
+	}
+	if len(other.cpuPowerSensors) > 0 {
+		f.cpuPowerSensors = other.cpuPowerSensors
 	}
 }
 

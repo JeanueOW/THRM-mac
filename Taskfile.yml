@@ -92,6 +92,20 @@ tasks:
     env:
       CGO_ENABLED: 1
 
+  build:darwin:
+    internal: true
+    deps:
+      - task: frontend:build
+    cmds:
+      # AppKit requires CGO. The minimum version matches build/darwin/Info.plist.
+      - wails3 tool prepare-macos-output --dir "{{.BIN_DIR}}"
+      - go build {{if .GO_TAGS}}-tags {{.GO_TAGS}}{{end}} -trimpath -buildvcs=false -ldflags="{{if ne .DEV "true"}}-s -w {{end}}{{.LDFLAGS}}" -o "{{.BIN_DIR}}/{{.APP_NAME}}" .
+    env:
+      CGO_ENABLED: 1
+      CGO_CFLAGS: "-mmacosx-version-min=13.0"
+      CGO_LDFLAGS: "-mmacosx-version-min=13.0"
+      MACOSX_DEPLOYMENT_TARGET: "13.0"
+
   package:
     summary: Windows：构建 GUI 并用 FluentSetup 打安装包 build/bin/THRM-amd64-installer.exe（THRM Core.exe 需事先构建好）
     deps: [build]
@@ -104,7 +118,7 @@ tasks:
 
   run:
     cmds:
-      - '{{.BIN_DIR}}/{{if eq OS "windows"}}{{.APP_NAME}}.exe{{else}}thrm{{end}}'
+      - '{{.BIN_DIR}}/{{if eq OS "windows"}}{{.APP_NAME}}.exe{{else if eq OS "darwin"}}{{.APP_NAME}}{{else}}thrm{{end}}'
 
   dev:
     summary: 开发模式：Go 改动自动重编译，前端由 Next 开发服务器热更新

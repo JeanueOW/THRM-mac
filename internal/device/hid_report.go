@@ -99,6 +99,11 @@ func (m *Manager) writeHIDReportLocked(frame []byte, reportLen int) ([]byte, err
 	m.recordDebugFrame("tx", "hid", report)
 	m.linkHealth.record(m.connectionGen.Load(), true, report, time.Now())
 	err = writeHIDReport(m.device, report)
+	for _, delay := range hidWriteRetryDelays(report, err) {
+		m.logDebug("macOS HID 写入暂时被设备拒绝，%v 后重试: %v", delay, err)
+		time.Sleep(delay)
+		err = writeHIDReport(m.device, report)
+	}
 	if isPendingHIDWriteFailure(err) {
 		m.hidWritePoisoned = err
 		if m.pendingHIDWrites == nil {

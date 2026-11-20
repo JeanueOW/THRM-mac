@@ -222,6 +222,18 @@ thrm
 > [!NOTE]
 > Linux 支持仍在持续完善。Windows 专属的 PawnIO、云母窗口材质、静默更新以及部分厂商硬件联动在 Linux 上不可用。
 
+### macOS
+
+macOS 版目前从源码构建（暂无官方预编译包）：
+
+```bash
+./build_macos.sh
+```
+
+产物为 `build/bin/THRM.app` 和 DMG。Intel 与 Apple Silicon 均支持，可用
+`UNIVERSAL=1 ./build_macos.sh` 生成通用二进制。构建环境、代码签名、蓝牙/麦克风
+权限和已知限制详见 [macOS 文档](docs/macos.md)。
+
 ## 快速开始
 
 1. 为散热器正常供电。
@@ -402,7 +414,7 @@ BS2, BS2 Pro, BS3 and BS3 Pro must first be paired through the operating system'
 * Automatic device reconnection
 * Optional RTSS OSD output for cooler fan RPM on Windows
 * In-app updates and diagnostics export
-* Windows and Linux builds
+* Windows, Linux and macOS builds
 * Simplified Chinese, English and Japanese interfaces
 
 Download the latest installer or portable package from the [Releases page](https://github.com/TIANLI0/THRM/releases/latest).
@@ -595,6 +607,32 @@ makepkg -f
 sudo pacman -U ./thrm-bin-*.pkg.tar.zst
 ```
 
+## macOS 构建
+
+需要 macOS 13+、Xcode Command Line Tools、Go、Bun 与 Wails v3 CLI：
+
+```bash
+go install github.com/wailsapp/wails/v3/cmd/wails3@v3.1.0
+./build_macos.sh
+```
+
+输出：
+
+```text
+build/bin/THRM.app
+build/bin/THRM-<version>-macOS-amd64.dmg
+```
+
+正式分发请使用 Developer ID 签名并公证：
+
+```bash
+NOTARIZE=1 \
+CODESIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" \
+./build_macos.sh
+```
+
+详见 [macOS 文档](docs/macos.md)。
+
 ## 测试与检查
 
 ```bash
@@ -604,7 +642,7 @@ cd frontend
 bun run build
 ```
 
-Pull Request 和推送到主要分支时，GitHub Actions 会分别构建 Windows 与 Linux 版本。
+Pull Request 和推送到主要分支时，GitHub Actions 会分别构建 Windows、Linux 与 macOS 版本。
 
 推送 `v*` 或 `V*` 标签后，发布流程会自动生成；标签包含 `-test` 时会标记为测试预发布：
 

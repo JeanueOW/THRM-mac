@@ -24,6 +24,7 @@ func (a *App) HideWindow() {
 
 // quit 退出 GUI 进程。服务的 ServiceShutdown 会随后执行。
 func (a *App) quit() {
+	a.quitting.Store(true)
 	if a.app != nil {
 		a.app.Quit()
 	}
