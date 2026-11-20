@@ -31,6 +31,8 @@ with `wails3 task <name>` — see [`Taskfile.yml`](../Taskfile.yml).
   `.wails` and does not overwrite them.
 * `darwin/icons.icns` - Application icon, generated from `appicon.png` with
   `wails3 generate icons -input build/appicon.png -macfilename build/darwin/icons.icns`.
+* `darwin/dmg-background.png` - Finder window background for the DMG installer. `build_macos.sh`
+  mounts a read-write image, places the icons and writes the Finder layout, then converts to UDZO.
 * `darwin/entitlements.plist` - Hardened-runtime entitlements (`device.bluetooth`, `device.audio-input`)
   used when building with a Developer ID identity.
 

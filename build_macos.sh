@@ -137,14 +137,75 @@ OUT_BASE="$BIN_DIR/THRM-${VERSION}-macOS-${ARCH_LABEL}"
 rm -f "$OUT_BASE.dmg" "$OUT_BASE.zip"
 if command -v hdiutil >/dev/null 2>&1; then
     # A Finder drag-to-Applications target is what users expect from a macOS
-    # installer. A bare -srcfolder of the .app produces a DMG with no shortcut,
-    # so stage the bundle together with an /Applications symlink.
+    # installer. Stage the bundle with an /Applications symlink and create a
+    # read-write image so Finder can store icon positions and a background.
+    VOLUME_NAME="THRM $VERSION"
     DMG_STAGE="$(mktemp -d "${TMPDIR:-/tmp}/thrm-dmg.XXXXXX")"
-    trap 'rm -rf "$DMG_STAGE"' EXIT
+    DMG_MOUNT=""
+    RW_DMG="$(mktemp -u "${TMPDIR:-/tmp}/thrm-rw.XXXXXX.dmg")"
+    trap 'if [ -n "${DMG_MOUNT:-}" ]; then hdiutil detach "$DMG_MOUNT" -force >/dev/null 2>&1 || true; fi; rm -rf "$DMG_STAGE" "$RW_DMG"' EXIT
+
     ditto "$APP_DIR" "$DMG_STAGE/THRM.app"
     ln -s /Applications "$DMG_STAGE/Applications"
-    hdiutil create -volname "THRM $VERSION" -srcfolder "$DMG_STAGE" -ov -format UDZO "$OUT_BASE.dmg" >/dev/null
-    rm -rf "$DMG_STAGE"
+
+    # hdiutil appends " 1" when a volume with the same name is already mounted,
+    # and Finder would then lay out the stale volume instead of the new image.
+    if [ -d "/Volumes/$VOLUME_NAME" ]; then
+        echo "Detaching previously mounted /Volumes/$VOLUME_NAME"
+        hdiutil detach "/Volumes/$VOLUME_NAME" >/dev/null 2>&1 || true
+    fi
+
+    hdiutil create -volname "$VOLUME_NAME" -srcfolder "$DMG_STAGE" -fs HFS+ -format UDRW -ov "$RW_DMG" >/dev/null
+    # Mount at the default /Volumes/<volume name> location: Finder takes the
+    # disk name from the mount point, and a custom -mountpoint would rename it
+    # to the temporary directory name.
+    ATTACH_OUTPUT="$(hdiutil attach -noautoopen -readwrite "$RW_DMG" 2>/dev/null || true)"
+    DMG_MOUNT="$(printf '%s\n' "$ATTACH_OUTPUT" | awk -F'\t' '/Apple_HFS/ {print $NF}' | tail -n1)"
+    if [ -n "$DMG_MOUNT" ] && [ -d "$DMG_MOUNT" ]; then
+        mkdir -p "$DMG_MOUNT/.background"
+        cp "$BUILD_DIR/darwin/dmg-background.png" "$DMG_MOUNT/.background/background.png"
+
+        if osascript <<APPLESCRIPT
+tell application "Finder"
+    tell disk "$VOLUME_NAME"
+        open
+        set current view of container window to icon view
+        set toolbar visible of container window to false
+        set statusbar visible of container window to false
+        set the bounds of container window to {240, 180, 880, 608}
+        set viewOptions to the icon view options of container window
+        set arrangement of viewOptions to not arranged
+        set icon size of viewOptions to 96
+        set text size of viewOptions to 13
+        set background picture of viewOptions to file ".background:background.png"
+        set position of item "THRM.app" of container window to {170, 200}
+        set position of item "Applications" of container window to {470, 200}
+        update without registering applications
+        delay 1
+        close
+    end tell
+end tell
+APPLESCRIPT
+        then
+            [ -f "$DMG_MOUNT/.DS_Store" ] && echo "DMG layout written"
+        else
+            echo "WARNING: Finder layout script failed; falling back to a plain DMG (Applications shortcut still present)"
+        fi
+
+        sync
+        hdiutil detach "$DMG_MOUNT" >/dev/null 2>&1 || hdiutil detach "$DMG_MOUNT" -force >/dev/null 2>&1 || true
+        DMG_MOUNT=""
+    else
+        echo "WARNING: could not mount the temporary DMG read-write; creating a plain DMG"
+    fi
+
+    rm -f "$OUT_BASE.dmg"
+    if [ -f "$RW_DMG" ]; then
+        hdiutil convert "$RW_DMG" -format UDZO -o "$OUT_BASE.dmg" >/dev/null
+    else
+        hdiutil create -volname "$VOLUME_NAME" -srcfolder "$DMG_STAGE" -ov -format UDZO "$OUT_BASE.dmg" >/dev/null
+    fi
+    rm -rf "$DMG_STAGE" "$RW_DMG"
     echo "DMG: $OUT_BASE.dmg"
 else
     (cd "$BIN_DIR" && ditto -c -k --sequesterRsrc --keepParent "THRM.app" "$OUT_BASE.zip")

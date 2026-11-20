@@ -51,7 +51,10 @@ build/bin/THRM-<version>-macOS-amd64.dmg   # 或 arm64 / universal
 3. 组装 `THRM.app/Contents/MacOS/{THRM,thrm-core}`；
 4. 复制 `Info.plist` 与 `icons.icns`；
 5. 用 `codesign` 签名（默认 ad-hoc）；
-6. 生成 DMG。
+6. 生成 DMG：写入带背景、箭头和固定图标位置的 Finder 布局，并附带 `Applications` 快捷方式。
+
+> DMG 布局通过 Finder 自动化写入。首次构建时 macOS 可能请求“终端/构建工具控制 Finder”的权限；
+> 拒绝授权时会自动回退为带 `Applications` 快捷方式的普通 DMG，不影响安装。
 
 通用二进制：
 
