@@ -46,6 +46,7 @@ func (a *App) AttachWindow(window *application.WebviewWindow) {
 		if platformKeepsWindowAliveOnClose() && !a.quitting.Load() {
 			event.Cancel()
 			window.Hide()
+			windowDidHide()
 		}
 	})
 }

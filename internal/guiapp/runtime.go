@@ -26,7 +26,7 @@ func (a *App) OnSecondInstanceLaunch(data application.SecondInstanceData) {
 		return
 	}
 	a.window.UnMinimise()
-	a.window.Show().Focus()
+	a.ShowWindow()
 	// 短暂置顶，确保窗口能盖过当前前台程序（Windows 会拦截后台进程抢焦点）。
 	a.window.SetAlwaysOnTop(true)
 	time.AfterFunc(time.Second, func() {

@@ -98,6 +98,13 @@ func main() {
 	app.Event.OnApplicationEvent(events.Mac.ApplicationShouldHandleReopen, func(*application.ApplicationEvent) {
 		gui.ShowWindow()
 	})
+	// Cmd+H 隐藏应用时也切到菜单栏代理模式，避免继续占用程序坞和 Cmd-Tab。
+	app.Event.OnApplicationEvent(events.Mac.ApplicationDidHide, func(*application.ApplicationEvent) {
+		gui.WindowDidHide()
+	})
+	app.Event.OnApplicationEvent(events.Mac.ApplicationDidUnhide, func(*application.ApplicationEvent) {
+		gui.PrepareWindowShow()
+	})
 
 	if err := app.Run(); err != nil {
 		println("Error:", err.Error())

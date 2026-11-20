@@ -10,8 +10,26 @@ import (
 // ShowWindow 显示主窗口
 func (a *App) ShowWindow() {
 	if a.window != nil {
+		prepareWindowShow()
 		a.window.Show().SetAlwaysOnTop(false)
 	}
+}
+
+// WindowDidHide is called by the macOS application events when the user hides
+// the app with Cmd+H. The window is already hidden by AppKit at that point; the
+// activation policy change only removes the Dock/Cmd-Tab entry.
+//
+//wails:ignore
+func (a *App) WindowDidHide() {
+	windowDidHide()
+}
+
+// PrepareWindowShow restores the regular Dock/Cmd-Tab behaviour. Exposed for
+// the app-level unhide/reopen event hooks in main.
+//
+//wails:ignore
+func (a *App) PrepareWindowShow() {
+	prepareWindowShow()
 }
 
 // HideWindow 隐藏主窗口到托盘
