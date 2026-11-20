@@ -25,7 +25,7 @@
 </div>
 
 > [!IMPORTANT]
-> 普通用户只需要从 [官网](https://thrm.tianli0.top/#download)（国内可直接下载）或 [Releases](https://github.com/TIANLI0/THRM/releases/latest) 下载对应安装包，不需要安装 Go、Bun、Wails、Node.js 或 .NET SDK。
+> 这是 macOS 移植分支。macOS 用户请从 **[本仓库 Releases](https://github.com/JeanueOW/THRM/releases/latest)** 下载通用 DMG；Windows/Linux 用户请使用 [上游官网](https://thrm.tianli0.top/#download) 或 [上游 Releases](https://github.com/TIANLI0/THRM/releases/latest)。运行 macOS 版不需要安装 Go、Bun、Wails、Node.js 或 .NET SDK。
 
 > [!WARNING]
 > THRM 是由社区开发的第三方开源项目，与飞智官方无关。自定义转速、非官方最低转速和实验性功能可能带来额外风险，请根据设备实际情况谨慎使用。
@@ -122,7 +122,8 @@ BS2、BS2 Pro、BS3 和 BS3 Pro 在完成系统蓝牙配对后，会以 HID 设�
 
 前往：
 
-**[THRM 官网](https://thrm.tianli0.top/#download)**（国内推荐，安装包由官网服务器转发）或 **[GitHub Releases](https://github.com/TIANLI0/THRM/releases/latest)**
+- macOS：**[本仓库 Releases](https://github.com/JeanueOW/THRM/releases/latest)**
+- Windows / Linux：**[THRM 官网](https://thrm.tianli0.top/#download)** 或 **[上游 GitHub Releases](https://github.com/TIANLI0/THRM/releases/latest)**
 
 ### Windows
 
