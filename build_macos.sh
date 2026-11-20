@@ -136,7 +136,15 @@ echo "--- Creating archive ---"
 OUT_BASE="$BIN_DIR/THRM-${VERSION}-macOS-${ARCH_LABEL}"
 rm -f "$OUT_BASE.dmg" "$OUT_BASE.zip"
 if command -v hdiutil >/dev/null 2>&1; then
-    hdiutil create -volname "THRM $VERSION" -srcfolder "$APP_DIR" -ov -format UDZO "$OUT_BASE.dmg" >/dev/null
+    # A Finder drag-to-Applications target is what users expect from a macOS
+    # installer. A bare -srcfolder of the .app produces a DMG with no shortcut,
+    # so stage the bundle together with an /Applications symlink.
+    DMG_STAGE="$(mktemp -d "${TMPDIR:-/tmp}/thrm-dmg.XXXXXX")"
+    trap 'rm -rf "$DMG_STAGE"' EXIT
+    ditto "$APP_DIR" "$DMG_STAGE/THRM.app"
+    ln -s /Applications "$DMG_STAGE/Applications"
+    hdiutil create -volname "THRM $VERSION" -srcfolder "$DMG_STAGE" -ov -format UDZO "$OUT_BASE.dmg" >/dev/null
+    rm -rf "$DMG_STAGE"
     echo "DMG: $OUT_BASE.dmg"
 else
     (cd "$BIN_DIR" && ditto -c -k --sequesterRsrc --keepParent "THRM.app" "$OUT_BASE.zip")
